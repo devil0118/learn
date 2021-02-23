@@ -4,8 +4,39 @@ Redis「**R**emote **D**ictionary **S**ervice」是基于内存的存储中间�
 
 ## 2. 基础 - 数据结构
 
-Redis 有 5 中数据结构：string、list、hash、set 和 zset（有序集合），分别对应 Java 中的 String、LinkedList、HashMap、Set、SortedSet。
+Redis 有 5 中数据结构：string、list、hash、set 和 zset（有序集合），分别对应 Java 中的 String、LinkedList、HashMap、Set、SortedSet。  
 
+
+String
+
+最基本的类型，就和普通的set 和 get，做简单的key - value 存储
+Hash
+
+这个是 类似于Map的一种结构，就是一半可以将结构化数据，比如对象（前提是这个对象没有嵌套其它对象）给缓存在redis中，每次读写redis缓存的时候，可以操作hash里面的某个字段
+key=150
+value={
+  "id": 150,
+  "name": "张三",
+  "age": 20,  
+}
+Hash类的数据结构，主要用来存放一些对象，把一些简单的对象给缓存起来，后续操作的时候，你可以直接仅仅修改这个对象中某个字段的值。
+List
+
+有序列表，可以通过list存储一些列表型的数据结构，类似粉丝列表，文章的评论列表之类的东西。
+可以通过lrange命令，从某个元素开始读取多少个元素，可以基于list实现分页查询，基于Redis实现简单的高性能分页，可以做类似微博那种下拉不断分页的东西，性能高，就是一页一页走。
+可以制作一个简单的消息队列，从list头插入，从list 的尾巴取出
+Set
+
+无序列表，自动去重
+直接基于Set将系统中需要去重的数据丢进去，如果你需要对一些数据进行快速的全局去重，就可以使用基于JVM内存里的HashSet进行去重，但是如果你的某个系统部署在多台机器上的话，只有使用Redis进行全局的Set去重
+可以基于set玩儿交集、并集、差集的操作，比如交集吧，可以把两个人的粉丝列表整一个交集，看看俩人的共同好友是谁？把两个大v的粉丝都放在两个set中，对两个set做交集
+Sort Set
+
+排序的set，去重但是可以排序，写进去的时候给一个分数，自动根据分数排序，这个可以玩儿很多的花样，最大的特点是有个分数可以自定义排序规则
+
+比如说你要是想根据时间对数据排序，那么可以写入进去的时候用某个时间作为分数，人家自动给你按照时间排序了
+
+排行榜：将每个用户以及其对应的什么分数写入进去，zadd board score username，接着zrevrange board 0 99，就可以获取排名前100的用户；zrank board username，可以看到用户在排行榜里的排名
 ### redisObject
 
 ```c
